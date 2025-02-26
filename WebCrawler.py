@@ -56,7 +56,7 @@ class WebCrawler:
                     parsed.netloc,
                     parsed.path,
                     parsed.params,
-                    parsed.query,
+                    parsed.query,  # Query parameters are preserved
                     "",  # Empty fragment
                 )
             )
@@ -296,15 +296,19 @@ class WebCrawler:
 
         # Hash the path for unique filenames
         path_hash = hashlib.md5(parsed_url.path.encode()).hexdigest()[:8]
-
+        
+        # Create query hash if query exists
+        query_part = ""
+        if parsed_url.query:
+            query_part = f"_q_{parsed_url.query.replace('?','_').replace('=','_').replace('&','_')}"
         # Create a sensible filename
         if parsed_url.path and parsed_url.path != "/":
             path = parsed_url.path.rstrip("/")
-            filename = f"{domain}{path.replace('/', '_')}"
+            filename = f"{domain}{path.replace('/', '_')}{query_part}"
             if len(filename) > 100:  # Limit filename length
-                filename = f"{domain}_{path_hash}"
+                filename = f"{domain}_{path_hash}{query_part}"
         else:
-            filename = f"{domain}_index"
+            filename = f"{domain}_index{query_part}"
 
         # Ensure filename is valid and add extension
         filename = "".join(c if c.isalnum() or c in "_-." else "_" for c in filename)
